@@ -8,10 +8,9 @@
     CharacterJoin,
     MyTurn,
     BeginTurn,
-    FillGameRoom,
+    StartTurn,
 
     Send_CharacterMove,
-    Send_CharacterStop,
 
     CharacterMove,
     CharacterStop,

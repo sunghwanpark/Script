@@ -17,10 +17,11 @@ namespace SHProject.Ingame.UI
             TurnManager.Instance.Event_TurnTimer += OnTurnTimer;
         }
 
-        [EventMethod(EventEnum.BeginTurn)]
+        [EventMethod(EventEnum.MyTurn)]
         public void StartTurn(object sender, EventArgs args)
         {
-            gameObject.SetActive(true);
+            TValueEventArgs<bool> eventArgs = args as TValueEventArgs<bool>;
+            gameObject.SetActive(eventArgs.arg);
         }
 
         public void OnTurnTimer(float timer)

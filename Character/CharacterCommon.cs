@@ -32,6 +32,8 @@ namespace SHProject.Ingame
         {
             if (!photonView.isMine)
                 return;
+            if (!TurnManager.Instance.IsMyTurn)
+                return;
 
             selectObject.SetActive(true);
             GridManager.Instance.SetCharacterGrid(LocateIdx.x, LocateIdx.z, Sight);
@@ -67,7 +69,7 @@ namespace SHProject.Ingame
             var locate = Map.Instance.GetMapIndex(targetPos);
             LocateIdx = locate;
 
-            EventHandlerManager.Invoke(EventEnum.Send_CharacterStop, this, new TValueEventArgs<Locate>(LocateIdx));
+            EventHandlerManager.Invoke(EventEnum.CharacterStop, this, new TValueEventArgs<Locate>(LocateIdx));
         }
     }
 }

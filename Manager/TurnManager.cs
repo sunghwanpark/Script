@@ -10,6 +10,14 @@ namespace SHProject.Ingame
         private PunTurnManager turnManager = null;
 
         public Action<float> Event_TurnTimer { get; set; }
+        public bool IsMyTurn
+        {
+            get
+            {
+                return PhotonNetwork.isMasterClient ? turnManager.Turn % 2 == 1 : turnManager.Turn % 2 == 0;
+            }
+            private set { }
+        }
 
         protected override void Awake()
         {
@@ -22,37 +30,41 @@ namespace SHProject.Ingame
         public void OnPlayerFinished(PhotonPlayer player, int turn, object move)
         {
             Debug.Log(move);
+
+            var loc = (Locate)move;
+            Debug.Log(string.Format("Player : {0}, TurnIdx : {1}, MoveIdx : {2}, {3}", player.ID, turn, loc.x, loc.z));
+            EventHandlerManager.Invoke(EventEnum.CharacterMove, this, new TValueEventArgs<PhotonPlayer, Locate>(player, loc));
         }
 
         public void OnPlayerMove(PhotonPlayer player, int turn, object move)
         {
             var loc = (Locate)move;
             Debug.Log(string.Format("Player : {0}, TurnIdx : {1}, MoveIdx : {2}, {3}", player.ID, turn, loc.x, loc.z));
-            EventHandlerManager.Invoke(EventEnum.CharacterMove, this, new TValueEventArgs<PhotonPlayer, Locate>(player, loc));
         }
 
         public void OnTurnBegins(int turn)
         {
-            EventHandlerManager.Invoke(EventEnum.BeginTurn, this, new TValueEventArgs<int>(turn));
+            EventHandlerManager.Invoke(EventEnum.BeginTurn, this, new TValueEventArgs<bool>(IsMyTurn));
+            Debug.LogFormat("{0} OnTurnBegins", turn);
         }
 
         public void OnTurnCompleted(int turn)
         {
+            Debug.LogFormat("{0} OnTurnCompleted", turn);
         }
 
         public void OnTurnTimeEnds(int turn)
         {
+            Debug.LogFormat("{0} OnTurnTimeEnds", turn);
         }
 
         private void StartTurn()
         {
             if (PhotonNetwork.isMasterClient)
-            {
-                if (this.turnManager.Turn == 0)
-                    turnManager.BeginTurn();
-            }
+                turnManager.BeginTurn();
 
             StartCoroutine(TurnTimer());
+            EventHandlerManager.Invoke(EventEnum.MyTurn, this, new TValueEventArgs<bool>(IsMyTurn));
         }
 
         IEnumerator TurnTimer()
@@ -65,7 +77,7 @@ namespace SHProject.Ingame
         }
 
         #region EVENT_METHOD
-        [EventMethod(EventEnum.FillGameRoom)]
+        [EventMethod(EventEnum.StartTurn)]
         public void StartTurn(object sender, EventArgs args)
         {
             Debug.Log("Start Turn");
@@ -81,13 +93,15 @@ namespace SHProject.Ingame
             turnManager.SendMove(eventArgs.arg, true);
         }
 
-        [EventMethod(EventEnum.Send_CharacterStop)]
-        public void SendStop(object sender, EventArgs args)
+        [EventMethod(EventEnum.CharacterMove)]
+        public void StartCharacterMove(object sender, EventArgs args)
         {
-            Debug.Log("Send Stop");
-            turnManager.
+            if (PhotonNetwork.isMasterClient)
+            {
+                StopCoroutine(TurnTimer());
+                EventHandlerManager.Invoke(EventEnum.MyTurn, this, new TValueEventArgs<bool>(false));
+            }
         }
-
         #endregion   
     }
 }

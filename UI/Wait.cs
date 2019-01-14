@@ -8,7 +8,8 @@ namespace SHProject.Ingame.UI
         [EventMethod(EventEnum.MyTurn)]
         public void OnMyTurn(object sender, EventArgs args)
         {
-            this.gameObject.SetActive(false);
+            TValueEventArgs<bool> eventArgs = args as TValueEventArgs<bool>;
+            this.gameObject.SetActive(!eventArgs.arg);
         }
     }
 }

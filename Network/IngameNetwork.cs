@@ -67,7 +67,7 @@ namespace SHProject.Ingame
         public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
         {
             if (PhotonNetwork.room.PlayerCount == maxPlayerNum)
-                EventHandlerManager.Invoke(EventEnum.FillGameRoom, this, null);
+                EventHandlerManager.Invoke(EventEnum.StartTurn, this, null);
         }
 
         public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
