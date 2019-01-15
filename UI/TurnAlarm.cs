@@ -13,16 +13,23 @@ namespace SHProject.Ingame.UI
         [SetField(typeof(UILabel), "enemy_turn")]
         private UILabel _enemyTurn;
 
+        protected override void Awake()
+        {
+            base.Awake();
+            gameObject.SetActive(false);
+        }
+
         [EventMethod(EventEnum.BeginTurn)]
         public void OnBeginTurn(object sender, EventArgs args)
         {
             TValueEventArgs<bool> eventArgs = args as TValueEventArgs<bool>;
+
+            gameObject.SetActive(true);
             StartCoroutine(TurnAlarmProcess(eventArgs.arg));
         }
 
         private IEnumerator TurnAlarmProcess(bool isMyTurn)
         {
-            gameObject.SetActive(true);
             _myTurn.cachedGameObject.SetActive(isMyTurn);
             _enemyTurn.cachedGameObject.SetActive(!isMyTurn);
 

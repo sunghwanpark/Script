@@ -11,6 +11,7 @@
     StartTurn,
 
     Send_CharacterMove,
+    Send_CharacterStop,
 
     CharacterMove,
     CharacterStop,

@@ -27,24 +27,26 @@ namespace SHProject.Ingame
             turnManager.TurnManagerListener = this;
         }
 
+        // 텔레포트, 다음턴을 위한 연출 시작
         public void OnPlayerFinished(PhotonPlayer player, int turn, object move)
         {
             Debug.Log(move);
 
             var loc = (Locate)move;
             Debug.Log(string.Format("Player : {0}, TurnIdx : {1}, MoveIdx : {2}, {3}", player.ID, turn, loc.x, loc.z));
-            EventHandlerManager.Invoke(EventEnum.CharacterMove, this, new TValueEventArgs<PhotonPlayer, Locate>(player, loc));
+            EventHandlerManager.Invoke(EventEnum.CharacterStop, this, new TValueEventArgs<PhotonPlayer, Locate>(player, loc));
+            EventHandlerManager.Invoke(EventEnum.BeginTurn, this, new TValueEventArgs<bool>(IsMyTurn));
         }
 
         public void OnPlayerMove(PhotonPlayer player, int turn, object move)
         {
             var loc = (Locate)move;
             Debug.Log(string.Format("Player : {0}, TurnIdx : {1}, MoveIdx : {2}, {3}", player.ID, turn, loc.x, loc.z));
+            EventHandlerManager.Invoke(EventEnum.CharacterMove, this, new TValueEventArgs<PhotonPlayer, Locate>(player, loc));
         }
 
         public void OnTurnBegins(int turn)
         {
-            EventHandlerManager.Invoke(EventEnum.BeginTurn, this, new TValueEventArgs<bool>(IsMyTurn));
             Debug.LogFormat("{0} OnTurnBegins", turn);
         }
 
@@ -81,14 +83,21 @@ namespace SHProject.Ingame
         public void StartTurn(object sender, EventArgs args)
         {
             Debug.Log("Start Turn");
-            if (this.turnManager.Turn == 0)
-                StartTurn();
+            StartTurn();
         }
 
         [EventMethod(EventEnum.Send_CharacterMove)]
         public void SendMove(object sender, EventArgs args)
         {
             Debug.Log("Send Move");
+            TValueEventArgs<Locate> eventArgs = args as TValueEventArgs<Locate>;
+            turnManager.SendMove(eventArgs.arg, false);
+        }
+
+        [EventMethod(EventEnum.Send_CharacterStop)]
+        public void SendStop(object sender, EventArgs args)
+        {
+            Debug.Log("Send Stop");
             TValueEventArgs<Locate> eventArgs = args as TValueEventArgs<Locate>;
             turnManager.SendMove(eventArgs.arg, true);
         }

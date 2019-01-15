@@ -13,7 +13,7 @@ namespace SHProject.Ingame
         private Vector3 lookAt = Vector3.forward;
         protected virtual short Sight { get; }
 
-        [EventMethod(EventEnum.CharacterMove)]
+        [EventMethod(EventEnum.CharacterMove, EventRegisterCall.Awake, EventRegisterCall.OnDestroy)]
         public void OnChracterMove(object sender, EventArgs args)
         {
             TValueEventArgs<PhotonPlayer, Locate> eventArgs = args as TValueEventArgs<PhotonPlayer, Locate>;
@@ -26,6 +26,17 @@ namespace SHProject.Ingame
 
             Vector3 targetLookAt = (targetPos - charPos).normalized;
             StartCoroutine(RotateLerp(targetLookAt, targetPos));
+        }
+
+        [EventMethod(EventEnum.CharacterStop, EventRegisterCall.Awake, EventRegisterCall.OnDestroy)]
+        void OnCharacterTeleport(object sender, EventArgs args)
+        {
+            TValueEventArgs<PhotonPlayer, Locate> eventArgs = args as TValueEventArgs<PhotonPlayer, Locate>;
+            selectObject.gameObject.SetActive(false);
+            if (eventArgs.arg1.ID != photonView.ownerId)
+                return;
+
+            cachedTransform.localPosition = Map.Instance.GetMapPosition(eventArgs.arg2);
         }
 
         private void OnMouseDown()
@@ -69,7 +80,10 @@ namespace SHProject.Ingame
             var locate = Map.Instance.GetMapIndex(targetPos);
             LocateIdx = locate;
 
-            EventHandlerManager.Invoke(EventEnum.CharacterStop, this, new TValueEventArgs<Locate>(LocateIdx));
+            if(photonView.isMine)
+                EventHandlerManager.Invoke(EventEnum.Send_CharacterStop, this, new TValueEventArgs<Locate>(LocateIdx));
         }
+
+        
     }
 }
