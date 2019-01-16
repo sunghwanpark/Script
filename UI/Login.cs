@@ -1,4 +1,6 @@
-﻿namespace SHProject.Ingame.UI
+﻿using SHProject.Network;
+
+namespace SHProject.Ingame.UI
 {
     public class Login : MonoBehaviourBase
     {

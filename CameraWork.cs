@@ -20,7 +20,7 @@ namespace SHProject.Ingame
             }
         }
 
-        [EventMethod(EventEnum.CharacterJoin)]
+        [EventMethod(EventEnum.Set_CameraTarget)]
         public void OnJoinTarget(object sender, EventArgs args)
         {
             TValueEventArgs<Transform> eventArgs = args as TValueEventArgs<Transform>;

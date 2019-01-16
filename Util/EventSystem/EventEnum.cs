@@ -5,7 +5,10 @@
     Touch_Canceled,
     Touch_Ended,
 
-    CharacterJoin,
+    Set_CameraTarget,
+
+    JoinRoom,
+
     MyTurn,
     BeginTurn,
     StartTurn,

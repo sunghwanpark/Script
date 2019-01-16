@@ -58,6 +58,7 @@ namespace SHProject.Ingame
         public void OnTurnTimeEnds(int turn)
         {
             Debug.LogFormat("{0} OnTurnTimeEnds", turn);
+            EventHandlerManager.Invoke(EventEnum.BeginTurn, this, new TValueEventArgs<bool>(IsMyTurn));
         }
 
         private void StartTurn()

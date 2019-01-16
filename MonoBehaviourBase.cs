@@ -61,10 +61,11 @@ public class MonoBehaviourBase : MonoBehaviour
 
         var attr = GetType().GetCustomAttributes<AutoRegisterEvent>();
         if (attr != null)
+        {
             SetCallingEventHandlers();
-
-        RegistEventHandler(EventRegisterCall.Awake);
-        UnRegistEventHandler(EventRegisterCall.Awake);
+            RegistEventHandler(EventRegisterCall.Awake);
+            UnRegistEventHandler(EventRegisterCall.Awake);
+        }
     }
 
     protected virtual void OnEnable()

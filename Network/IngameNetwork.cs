@@ -1,8 +1,8 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using SHProject.Ingame;
 
-namespace SHProject.Ingame
+namespace SHProject.Network
 {
     public class IngameNetwork : PunSingleton<IngameNetwork>
     {
@@ -10,6 +10,11 @@ namespace SHProject.Ingame
 
         private Vector3 previousPos = Vector3.one;
         private Transform myPlayer;
+
+        private void Start()
+        {
+            PhotonNetwork.OnEventCall += OnEventHandler;
+        }
 
         public void Login(string userId)
         {
@@ -41,16 +46,13 @@ namespace SHProject.Ingame
             RoomOptions roomOptions = new RoomOptions();
             roomOptions.MaxPlayers = 2;
             roomOptions.CleanupCacheOnLeave = true;
+            roomOptions.Plugins = new string[] { "JoinExtensionPlugin" };
             PhotonNetwork.CreateRoom(null, roomOptions, TypedLobby.Default);
         }
 
         public override void OnJoinedRoom()
         {
-            var obj = PhotonNetwork.Instantiate("Prefabs/player_demo", Vector3.one, Quaternion.identity, 0);
-
-            myPlayer = obj.transform;
-            previousPos = myPlayer.localPosition;
-            EventHandlerManager.Invoke(EventEnum.CharacterJoin, this, new TValueEventArgs<Transform>(obj.transform));
+            EventHandlerManager.Invoke(EventEnum.JoinRoom, this, null);
         }
 
         public override void OnPhotonPlayerActivityChanged(PhotonPlayer otherPlayer)
@@ -66,13 +68,45 @@ namespace SHProject.Ingame
 
         public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
         {
-            if (PhotonNetwork.room.PlayerCount == maxPlayerNum)
-                EventHandlerManager.Invoke(EventEnum.StartTurn, this, null);
+            Debug.Log(newPlayer);
+
+            //if (PhotonNetwork.room.PlayerCount == maxPlayerNum)
+            //    EventHandlerManager.Invoke(EventEnum.StartTurn, this, null);
         }
 
         public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
         {
             base.OnPhotonPlayerDisconnected(otherPlayer);
+        }
+
+        private GameObject MakeCharacter()
+        {
+            var obj = PhotonNetwork.Instantiate("Prefabs/player_demo", Vector3.one, Quaternion.identity, 0);
+            obj.transform.localRotation = Quaternion.identity;
+            return obj;
+        }
+
+        private void OnEventHandler(byte eventCode, object content, int senderId)
+        {
+            switch (eventCode)
+            {
+                case CustomEventCode.FirstLocate:
+                    Hashtable evTable = content as Hashtable;
+                    var enum_erator = evTable.GetEnumerator();
+                    while(enum_erator.MoveNext())
+                    {
+                        byte id = (byte)enum_erator.Key;
+                        Locate locate = (Locate)enum_erator.Value;
+
+                        var obj = MakeCharacter();
+                        obj.transform.localPosition = Map.Instance.GetMapPosition(locate);
+                        if(id == PhotonNetwork.player.ID)
+                            EventHandlerManager.Invoke(EventEnum.Set_CameraTarget, this, new TValueEventArgs<Transform>(obj.transform));
+                    }
+
+                    EventHandlerManager.Invoke(EventEnum.BeginTurn, this, null);
+                    break;
+            }
         }
     }
 }
