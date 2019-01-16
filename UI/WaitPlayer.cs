@@ -8,27 +8,21 @@ namespace SHProject.Ingame.UI
         [SetField(typeof(TweenAlpha), "Tweener")]
         private TweenAlpha _tweener;
 
-        protected override void Awake()
-        {
-            base.Awake();
-            gameObject.SetActive(false);
-        }
-
-        [EventMethod(EventEnum.JoinRoom)]
+        [EventMethod(EventEnum.JoinRoom, EventRegisterCall.OnEnable, EventRegisterCall.OnDisable)]
         public void OnJoinRoom(object sender, EventArgs args)
         {
-            gameObject.SetActive(true);
+            _tweener.gameObject.SetActive(true);
 
             _tweener.enabled = true;
             _tweener.ResetToBeginning();
             _tweener.PlayForward();
         }
 
-        [EventMethod(EventEnum.BeginTurn)]
+        [EventMethod(EventEnum.BeginTurn, EventRegisterCall.OnEnable, EventRegisterCall.OnDisable)]
         public void OnFillRoom(object sender, EventArgs args)
         {
             _tweener.enabled = false;
-            gameObject.SetActive(false);
+            _tweener.gameObject.SetActive(false);
         }
     }
 }

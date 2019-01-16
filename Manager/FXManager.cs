@@ -11,14 +11,14 @@ namespace SHProject.Ingame
     }
 
     [AutoRegisterEvent]
-    public class FXManager : MonoBehaviourBase
+    public class FXManager : MonoBehaviourBase, IPooledObject<ParticleSystem>
     {
         private const int maxPoolCount = 10;
 
         private Dictionary<string, GameObject> loadedFx = new Dictionary<string, GameObject>();
         private Dictionary<string, List<ParticleSystem>> _fxObjectPool = new Dictionary<string, List<ParticleSystem>>();
 
-        private ParticleSystem GetPoolItem(string fxName)
+        public ParticleSystem GetPoolItem(string objName)
         {
             if (_fxObjectPool.ContainsKey(FXNameList.CharacterMove))
             {

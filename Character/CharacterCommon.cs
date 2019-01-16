@@ -13,6 +13,13 @@ namespace SHProject.Ingame
         private Vector3 lookAt = Vector3.forward;
         protected virtual short Sight { get; }
 
+        [EventMethod(EventEnum.MyTurn)]
+        public void OnMyTurn(object sender, EventArgs args)
+        {
+            TValueEventArgs<bool> eventArgs = args as TValueEventArgs<bool>;
+            isMyTurn = eventArgs.arg;
+        }
+
         [EventMethod(EventEnum.CharacterMove, EventRegisterCall.Awake, EventRegisterCall.OnDestroy)]
         public void OnChracterMove(object sender, EventArgs args)
         {
@@ -37,17 +44,6 @@ namespace SHProject.Ingame
                 return;
 
             cachedTransform.localPosition = Map.Instance.GetMapPosition(eventArgs.arg2);
-        }
-
-        private void OnMouseDown()
-        {
-            if (!photonView.isMine)
-                return;
-            if (!TurnManager.Instance.IsMyTurn)
-                return;
-
-            selectObject.SetActive(true);
-            GridManager.Instance.SetCharacterGrid(LocateIdx.x, LocateIdx.z, Sight);
         }
 
         IEnumerator RotateLerp(Vector3 targetLookAt, Vector3 targetPos)

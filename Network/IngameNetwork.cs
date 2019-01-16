@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using SHProject.Ingame;
 
@@ -53,6 +54,7 @@ namespace SHProject.Network
         public override void OnJoinedRoom()
         {
             EventHandlerManager.Invoke(EventEnum.JoinRoom, this, null);
+            PhotonNetwork.Instantiate("Prefabs/player_demo", new Vector3(0f, 500f, 0f), Quaternion.identity, 0);
         }
 
         public override void OnPhotonPlayerActivityChanged(PhotonPlayer otherPlayer)
@@ -77,13 +79,7 @@ namespace SHProject.Network
         public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
         {
             base.OnPhotonPlayerDisconnected(otherPlayer);
-        }
-
-        private GameObject MakeCharacter()
-        {
-            var obj = PhotonNetwork.Instantiate("Prefabs/player_demo", Vector3.one, Quaternion.identity, 0);
-            obj.transform.localRotation = Quaternion.identity;
-            return obj;
+            CharacterManager.Instance.RemoveCharacter(otherPlayer.ID);
         }
 
         private void OnEventHandler(byte eventCode, object content, int senderId)
@@ -91,20 +87,35 @@ namespace SHProject.Network
             switch (eventCode)
             {
                 case CustomEventCode.FirstLocate:
-                    Hashtable evTable = content as Hashtable;
-                    var enum_erator = evTable.GetEnumerator();
+
+                    Dictionary<byte, object> evTable = content as Dictionary<byte, object>;
+                    int firstTurnIdx = (int)evTable[CustomParameterCode.FirstTurn];
+
+                    Dictionary<byte, object> locateInfos = evTable[CustomParameterCode.Locate] as Dictionary<byte, object>;
+
+                    int count = 0;
+                    bool isMyTurn = false;
+                    var enum_erator = locateInfos.GetEnumerator();
                     while(enum_erator.MoveNext())
                     {
-                        byte id = (byte)enum_erator.Key;
-                        Locate locate = (Locate)enum_erator.Value;
+                        byte id = (byte)enum_erator.Current.Key;
+                        Locate locate = (Locate)enum_erator.Current.Value;
 
-                        var obj = MakeCharacter();
-                        obj.transform.localPosition = Map.Instance.GetMapPosition(locate);
-                        if(id == PhotonNetwork.player.ID)
-                            EventHandlerManager.Invoke(EventEnum.Set_CameraTarget, this, new TValueEventArgs<Transform>(obj.transform));
+                        CharacterBase _char = CharacterManager.Instance.GetCharacter(id);
+                        if (_char != null)
+                        {
+                            _char.SetLocate(locate);
+                            if (_char.IsMine)
+                            {
+                                if (firstTurnIdx == count)
+                                    isMyTurn = true;
+                                EventHandlerManager.Invoke(EventEnum.Set_CameraTarget, this, new TValueEventArgs<Transform>(_char.transform));
+                            }
+                        }
+                        count++;
                     }
-
-                    EventHandlerManager.Invoke(EventEnum.BeginTurn, this, null);
+                    Debug.LogFormat("My Turn {0}, TurnIdx {1}", isMyTurn, firstTurnIdx);
+                    EventHandlerManager.Invoke(EventEnum.BeginTurn, this, new TValueEventArgs<bool>(isMyTurn));
                     break;
             }
         }
